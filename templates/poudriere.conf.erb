@@ -78,6 +78,18 @@ MFSSIZE=<%= @mfssize %>
 USE_TMPFS=<%= @tmpfs %>
 <% end -%>
 
+# How much memory to limit tmpfs size to for *each builder* in GiB
+# (default: none)
+<% if @tmpfs_limit and @tmpfs_limit != '' -%>
+TMPFS_LIMIT=<%= @tmpfs_limit %>
+<% end -%>
+
+# How much memory to limit jail processes to for *each builder*
+# in GiB (default: none)
+<% if @max_mem and @max_mem != '' -%>
+MAX_MEMORY=<%= @max_mem %>
+<% end -%>
+
 # If set the given directory will be used for the distfiles this allow the share
 # the distfiles between jails and ports tree
 DISTFILES_CACHE=<%= @distfiles_cache %>
@@ -132,6 +144,11 @@ PKG_REPO_SIGNING_KEY=<%= @pkg_repo_signing_key %>
 # Example to define PARALLEL_JOBS to one single job
 PARALLEL_JOBS=<%= @parallel_jobs %>
 
+# How many jobs should be used for preparing the build? These tend to
+# be more IO bound and may be worth tweaking. Default: Same as PARALLEL_JOBS
+<% if @prep_par_jobs and @prep_par_jobs != '' -%>
+PREPARE_PARALLEL_JOBS=<%= @prep_par_jobs %>
+<% end -%>
 
 # If set, failed builds will save the WRKDIR to ${POUDRIERE_DATA}/wrkdirs
 # SAVE_WRKDIR=yes
@@ -150,6 +167,12 @@ WRKDIR_ARCHIVE_FORMAT=<%= @wrkdir_archive_format %>
 # NOLINUX=yes
 <% if @nolinux and @nolinux != '' -%>
 NOLINUX=<%= @nolinux %>
+<% end -%>
+
+# By default poudriere sets FORCE_PACKAGE
+# To disable it (useful when building public packages):
+<% if @no_force_pkg and @no_force_pkg != '' -%>
+NO_FORCE_PACKAGE=<%= @no_force_pkg %>
 <% end -%>
 
 # by default poudriere set PACKAGE_BUILDING
@@ -184,6 +207,19 @@ NO_RESTRICTED=<%= @no_restricted %>
 ALLOW_MAKE_JOBS=<%= @allow_make_jobs %>
 <% end -%>
 
+# List of packages that will always be allowed to use MAKE_JOBS
+# regardless of ALLOW_MAKE_JOBS. This is useful for allowing ports
+# which holdup the rest of the queue to build more quickly.
+<% if @allow_make_jobs_pkgs and @allow_make_jobs_pkgs != '' -%>
+ALLOW_MAKE_JOBS_PACKAGES=<%= @allow_make_jobs_pkgs %>
+<% end -%>
+
+# Timestamp every line of build logs
+# Default: no
+<% if @timestamp_logs and @timestamp_logs != '' -%>
+TIMESTAMP_LOGS=<%= @timestamp_logs %>
+<% end -%>
+
 # Define as the URL that your POUDRIERE_DATA/logs is hosted at
 # This will be used for giving URL hints to the HTML output when
 # scheduling and starting builds
@@ -204,4 +240,98 @@ MAX_EXECUTION_TIME=<%= @max_execution_time %>
 #NOHANG_TIME=7200
 <% if @nohang_time and @nohang_time != '' -%>
 NOHANG_TIME=<%= @nohang_time %>
+<% end -%>
+
+# The repository is updated atomically if set yes. This leaves the
+# repository untouched until the build completes. This involves using
+# hardlinks and symlinks. The operations are fast, but can be intrusive
+# for remote syncing or backups.
+# Recommended to always keep on.
+# Default: yes
+<% if @atomic_pkg_repo and @atomic_pkg_repo != '' -%>
+ATOMIC_PACKAGE_REPOSITORY=<%= @atomic_pkg_repo %>
+<% end -%>
+
+# When using ATOMIC_PACKAGE_REPOSITORY, commit the packages if some
+# packages fail to build. Ignored ports are considered successful.
+# This can be set to 'no' to only commit the packages once no failures
+# are encountered.
+# Default: yes
+<% if @commit_pkgs_on_failure and @commit_pkgs_on_failure != '' -%>
+COMMIT_PACKAGES_ON_FAILURE=<%= @commit_pkgs_on_failure %>
+<% end -%>
+
+# Keep older package repositories. This can be used to rollback a system
+# or to bisect issues by changing the repository to one of the older
+# versions and reinstalling everything with `pkg upgrade -f`
+# ATOMIC_PACKAGE_REPOSITORY is required for this.
+# Default: no
+<% if @keep_old_pkgs and @keep_old_pkgs != '' -%>
+KEEP_OLD_PACKAGES=<%= @keep_old_pkgs %>
+<% end -%>
+
+# How many old package repositories to keep with KEEP_OLD_PACKAGES
+# Default: 5
+<% if @keep_old_pkgs_count and @keep_old_pkgs_count != '' -%>
+KEEP_OLD_PACKAGES_COUNT=<%= @keep_old_pkgs_count %>
+<% end -%>
+
+# Make testing errors fatal.
+# If set to 'no', ports with test failure will be marked as failed but still
+# packaged to permit testing dependent ports (useful for bulk -t -a)
+# Default: yes
+<% if @porttesting_fatal and @porttesting_fatal != '' -%>
+PORTTESTING_FATAL=<%= @porttesting_fatal %>
+<% end -%>
+
+# Define the building jail hostname to be used when building the packages
+# Some port/packages hardcode the hostname of the host during build time
+# This is a necessary setup for reproducible builds.
+<% if @builder_hostname and @builder_hostname != '' -%>
+BUILDER_HOSTNAME=<%= @builder_hostname %>
+<% end -%>
+
+# Define to get a predictable timestamp on the ports tree
+# This is a necessary setup for reproducible builds.
+<% if @preserve_timestamp and @preserve_timestamp != '' -%>
+PRESERVE_TIMESTAMP=<%= @preserve_timestamp %>
+<% end -%>
+
+# Define to yes to build and stage as a regular user
+# Default: no
+<% if @build_as_non_root and @build_as_non_root != '' -%>
+BUILD_AS_NON_ROOT=<%= @build_as_non_root %>
+<% end -%>
+
+# Define pkgname globs to boost priority for
+# Default: none
+<% if @priority_boost and @priority_boost != '' -%>
+PRIORITY_BOOST=<%= @priority_boost %>
+<% end -%>
+
+# Define format for buildnames
+# Default: %Y-%m-%d_%Hh%Mm%Ss
+# ISO8601:
+<% if @buildname_format and @buildname_format != '' -%>
+BUILDNAME_FORMAT=<%= @buildname_format %>
+<% end -%>
+
+# Define format for build duration times
+# Default: %H:%M:%S
+<% if @duration_format and @duration_format != '' -%>
+DURATION_FORMAT=<%= @duration_format %>
+<% end -%>
+
+# Use colors when in a TTY
+# Default: yes
+<% if @use_colors and @use_colors != '' -%>
+USE_COLORS=<%= @use_colors %>
+<% end -%>
+
+# Only build what is requested. Do not rebuild build deps if nothing requested
+# depends on them. This can create an inconsistent repository if you often
+# build one-off packages but expect the repository to stay consistent.
+# Defaut: yes
+<% if @trim_orphaned_build_deps and @trim_orphaned_build_deps != '' -%>
+TRIM_ORPHANED_BUILD_DEPS=<%= @trim_orphaned_build_deps %>
 <% end -%>
